@@ -103,7 +103,7 @@ tar -cvf "$bkupdir-backup_$bkupid.tar" $webroot | cut -d "/" -f6 | uniq | sort
 dbgps
 
 # Use gzip to compress the created tarball using the strength set in the config
-printf "\nCompressing it..."
+printf "\nCompressing it with level $gziplv..."
 gzip -$gziplv $bkupdir-backup_$bkupid.tar
 debuglog "Gzip complete"
 printf "\n"
@@ -123,7 +123,7 @@ for I in $(mysql -u$dbus -p$dbpw -e 'show databases' -s --skip-column-names | gr
         mysqldump -u$dbus -p$dbpw $I > "${I}_database-backup_$bkupid.sql";
 
         # ...and use gzip with the appropriate compression level
-        printf "Compressing it...\n"
+        printf "Compressing it with $gziplv...\n"
         gzip -$gziplv ${I}_database-backup_$bkupid.sql;
 done
 debuglog "Databases done"
@@ -133,6 +133,7 @@ dbgps
 printf "\n"
 printf "Setting permissions...\n"
 chmod -R $bkupmode $bkuproot/*.gz
+chown -R $bkupuser:$bkupgroup $bkuproot/*.gz
 dbgps
 
 # Remove files that are older then the config allows. (using full path & restricted to .gz files, as a precaution)
