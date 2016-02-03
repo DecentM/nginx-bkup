@@ -19,16 +19,18 @@ if [ -f settings ]; then
 	done
 	for i in {1..$linec}
 	do
-		echo $i
+		printf "$i\n"
 		#add_option $(grep "^[^#]" settings | cut -d "=" -f1) $(grep "^[^#]" settings | cut -d "=" -f2)
 	done
 else
-	echo "No settings file"
+	printf "No settings file\n"
+    #CHECK FOR NET & DOWNLOAD IT
 	exit
 fi
 
 exit
-## SCRIPT START ## DO NOT EDIT ##
+
+## CONFIG DELIMETER ##
 # Debug level can go from 0 to 5, and is set from the first argument
 if [ -f $1 ]; then
         add_option "debuglv" "0";
@@ -62,7 +64,7 @@ is_debug() {
 # Print all arguements if is_debug is true (used for verbose logging)
 debuglog() {
         if is_debug; then
-                echo $@
+                printf "$@\n"
         fi
 }
 debuglog "Functions done"
@@ -82,8 +84,7 @@ fi
 debuglog "Passed all debug steps"
 dbgps
 
-echo "Backup ID is $bkupid"
-printf "\n"
+printf "Backup ID is $bkupid\n"
 dbgps
 
 # Switch to the backup root directory, so we don't have to use absolute paths every time
@@ -93,11 +94,11 @@ pwd
 printf "\n"
 dbgps
 
-echo "Stopping execution to prevent accidental file creation"
+printf "Stopping execution to prevent accidental file creation\n"
 exit
 
 # Create a tarball with the previously defined ID and the webroot directory name
-echo "Recursively backing up the following folders and files in $webroot:"
+printf "Recursively backing up the following folders and files in $webroot:\n"
 tar -cvf "$bkupdir-backup_$bkupid.tar" $webroot | cut -d "/" -f6 | uniq | sort
 dbgps
 
@@ -118,11 +119,11 @@ for I in $(mysql -u$dbus -p$dbpw -e 'show databases' -s --skip-column-names | gr
         dbgps
 
         # Dump the current database...
-        echo "Dumping ${I}..."
+        printf "Dumping ${I}...\n"
         mysqldump -u$dbus -p$dbpw $I > "${I}_database-backup_$bkupid.sql";
 
         # ...and use gzip with the appropriate compression level
-        echo "Compressing it..."
+        printf "Compressing it...\n"
         gzip -$gziplv ${I}_database-backup_$bkupid.sql;
 done
 debuglog "Databases done"
@@ -130,15 +131,15 @@ dbgps
 
 # Set permissions and ownership defined in the variable, recursively. (using full path & restricted to .gz files, as a precaution)
 printf "\n"
-echo "Setting permissions..."
+printf "Setting permissions...\n"
 chmod -R $bkupmode $bkuproot/*.gz
 dbgps
 
 # Remove files that are older then the config allows. (using full path & restricted to .gz files, as a precaution)
-echo "Deleting these files from $bkuproot, that are older than a week..."
+printf "Deleting these files from $bkuproot, that are older than a week...\n"
 find $bkuproot/*.gz -mtime +$filemage -type f
 find $bkuproot/*.gz -mtime +$filemage -type f -delete
-echo "Done"
+printf "Done\n"
 dbgps
 
 # List the backup driectory, so that if the output is sent by mail, the recipient will have a good understanding on how many files there are
@@ -148,12 +149,12 @@ printf "\n"
 dbgps
 
 # Use "cd -" to switch back to the directory the user was at before running the script
-echo "Switching back"
+printf "Switching back\n"
 cd -
 dbgps
 
 # Finally, subtract the saved UNIX timestamp from the current one, and print it
 printf "\n"
-echo "Script took $(($(date +""%s"")-$bkupstart)) seconds to run"
+printf "Script took $(($(date +""%s"")-$bkupstart)) seconds to run\n"
 dbgps
 ## END OF SCRIPT ##
