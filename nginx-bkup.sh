@@ -37,6 +37,7 @@ if [ ! -f settings ]; then
 	if is_online; then
         printf "Missing settings file, downloading..."
         wget -q "https://raw.githubusercontent.com/DecentM/nginx-bkup/master/settings" -o settings
+        printf "Please edit the settings file in the same directory as this script, and try again!\n"
     else
         printf "Missing settings file and can't download one, exiting..."
     fi
