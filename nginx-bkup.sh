@@ -112,9 +112,6 @@ pwd
 printf "\n"
 dbgps
 
-#printf "Stopping execution to prevent accidental file creation\n"
-#exit
-
 # Create a tarball with the previously defined ID and the webroot directory name
 
 # Finalize the backup name by evaluating $namestruc,
@@ -124,7 +121,7 @@ eval "bkupfname=$namestruc"
 
 printf "Creating $bkupfname.tar...\n"
 
-printf "Recursively backing up the following folders and files in $webroot:\n"
+printf "Recursively backing up the following folders and files from $webroot:\n"
 ls -1 $webroot
 tar -cf "$bkupfname.tar" -C $webroot .
 dbgps
