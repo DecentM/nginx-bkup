@@ -21,10 +21,25 @@ add_option() {
 }
 add_option "optionsc" "1";
 
+# Save the current UNIX timestamp to be able to measure approximate run time
+add_option "bkupstart" "$(date +""%s"")"
+
+is_online() {
+    wget -q --spider http://google.com
+    if [ $? -eq 0 ]; then
+        return $(true)
+    else
+        return $(false)
+    fi
+}
+
 if [ ! -f settings ]; then
-	printf "No settings file\n"
-    #CHECK FOR NET & DOWNLOAD IT
-	exit
+	if is_online; then
+        printf "Missing settings file, downloading..."
+        wget -q "https://raw.githubusercontent.com/DecentM/nginx-bkup/settings" -o settings
+    else
+        printf "Missing settings file and can't download one, exiting..."
+    fi
 fi
 
 source settings
@@ -37,10 +52,7 @@ else
         add_option "debuglv" "$1";
 fi
 
-# Save the current UNIX timestamp to be able to measure approximate run time
-add_option "bkupstart" "$(date +""%s"")"
-
-# Concatenate a random string to the backup filenames, so that even if the script is ran multiple times each second,
+# Create a variable from bash's $RANDOM, which will be used in the filename, so tha
 # the chance of overwriting files is minimal at best
 add_option "bkupid" '#'"$RANDOM"
 
@@ -172,8 +184,8 @@ find $bkuproot/*.gz -mtime +$filemage -type f -delete
 dbgps
 
 # List the backup driectory, so that if the output is sent by mail, the recipient will have a good understanding on how many files there are
-printf "\nPost-backup directory listing of backups/:\n"
-ls -lt --block-size=MB
+printf "\nPost-backup directory listing of $bkuproot:\n"
+ls -lt --block-size=MB $bkuproot
 printf "\n"
 dbgps
 
