@@ -1,15 +1,13 @@
-echo "Running settings"
-
 ## This is the date format, which will be used in backup names
 add_option "bkupdateformat" "$(date +""%Y.%m.%d-%H%M.%S"")"
 
 ## The directory to store the backups in
 ## Default: /usr/share/nginx/backups
-add_option "bkuproot" '/usr/share/nginx/backups'
+add_option "bkuproot" '/home/decentm/testing/bkups'
  
 ## The directory that will be backed up
 ## Default: /usr/share/nginx/html
-add_option "webroot" '/usr/share/nginx/html'
+add_option "webroot" '/home/decentm/testing/html'
 
 ## How the file name should be structured
 ## Enter sections as separate arguements

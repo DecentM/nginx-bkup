@@ -4,18 +4,24 @@
 # To be able to backup databases, you need a mysql user with these global privileges: SELECT, SHOW DATABASES, LOCK TABLES, RELOAD
 ####################################################################################################
 
+is_root() {
+    if [ "$(id -u)" != "0" ]; then
+        return $(false)
+    else
+        return $(true)
+    fi
+}
+
 optionsc="0"
 add_option() {
-        printf "Adding option "$1" = "$2"\n" # This is debug only
-        eval "$1=$2"
-#        eval "$1="$2""
+        #printf "Adding option "$1" = "$2"\n" # This is debug only
+        eval "$1='$2'"
+#       eval "$1="$2""
         let optionsc++
 }
 add_option "optionsc" "1";
 
-if [ -f settings ]; then
-    printf "Settings file exists\n"
-else
+if [ ! -f settings ]; then
 	printf "No settings file\n"
     #CHECK FOR NET & DOWNLOAD IT
 	exit
@@ -36,11 +42,7 @@ add_option "bkupstart" "$(date +""%s"")"
 
 # Concatenate a random string to the backup filenames, so that even if the script is ran multiple times each second,
 # the chance of overwriting files is minimal at best
-add_option "bkupid" "\#$RANDOM"
-
-# Finalize the backup name by evaluating $namestruc,
-# thus replacing the variable names with their content in $bkupfname
-eval "bkupfname=$namestruc"
+add_option "bkupid" '#'"$RANDOM"
 
 # Define debugging functions
 # If the debug level is more than 2, we pause at dbgps calls
@@ -64,6 +66,7 @@ debuglog() {
                 printf "$@\n"
         fi
 }
+
 debuglog "Functions done"
 dbgps
 
@@ -95,21 +98,33 @@ pwd
 printf "\n"
 dbgps
 
-printf "Stopping execution to prevent accidental file creation\n"
-exit
+#printf "Stopping execution to prevent accidental file creation\n"
+#exit
 
 # Create a tarball with the previously defined ID and the webroot directory name
+
+# Finalize the backup name by evaluating $namestruc,
+# thus replacing the variable names with their content in $bkupfname
+add_option "ftitle" "$bkupdir"
+eval "bkupfname=$namestruc"
+
+printf "Creating $bkupfname.tar...\n"
+
 printf "Recursively backing up the following folders and files in $webroot:\n"
-tar -cvf "$bkupdir-backup_$bkupid.tar" $webroot | cut -d "/" -f6 | uniq | sort
+ls -1 $webroot
+tar -cf "$bkupfname.tar" -C $webroot .
 dbgps
 
 # Use gzip to compress the created tarball using the strength set in the config
-printf "\nCompressing it with level $gziplv..."
-gzip -$gziplv $bkupdir-backup_$bkupid.tar
+printf "\nCompressing $bkupfname.tar with level $gziplv..."
+gzip -$gziplv $bkupfname.tar
 debuglog "Gzip complete"
 printf "\n"
 debuglog "$webroot done"
 dbgps
+
+# Check if we have the mysql command, if yes, start backing up the databases
+if hash mysql 2>/dev/null; then
 
 # Back up databases
 # Note: Planned feature: if no database username is specified, skip this step
@@ -119,29 +134,41 @@ printf "\nBacking up database(s)...\n"
 for I in $(mysql -u$dbus -p$dbpw -e 'show databases' -s --skip-column-names | grep -Ev "($ignoredbs)"); do
         dbgps
 
+        add_option "ftitle" "${I}"
+        eval "bkupfname=$namestruc"
+
         # Dump the current database...
         printf "Dumping ${I}...\n"
-        mysqldump -u$dbus -p$dbpw $I > "${I}_database-backup_$bkupid.sql";
+        mysqldump -u$dbus -p$dbpw $I > "$bkupfname.sql";
 
         # ...and use gzip with the appropriate compression level
         printf "Compressing it with $gziplv...\n"
-        gzip -$gziplv ${I}_database-backup_$bkupid.sql;
+        gzip -$gziplv "$bkupfname.sql";
 done
 debuglog "Databases done"
+else
+    printf "\n"
+    printf "You don't seem to have the mysql command available, skipping database backups...\n"
+fi
 dbgps
 
 # Set permissions and ownership defined in the variable, recursively. (using full path & restricted to .gz files, as a precaution)
 printf "\n"
-printf "Setting permissions...\n"
+printf "Setting permissions:\n"
+printf "User: $bkupuser\nGroup: $bkupgroup\nMode: $bkupmode\n"
 chmod -R $bkupmode $bkuproot/*.gz
-chown -R $bkupuser:$bkupgroup $bkuproot/*.gz
+if is_root; then
+    chown -R $bkupuser:$bkupgroup $bkuproot/*.gz
+else
+    printf "The script isn't running as root, but $(whoami). Ownership changing skipped.\n"
+fi
 dbgps
 
 # Remove files that are older then the config allows. (using full path & restricted to .gz files, as a precaution)
+printf "\n"
 printf "Deleting these files from $bkuproot, that are older than a week...\n"
 find $bkuproot/*.gz -mtime +$filemage -type f
 find $bkuproot/*.gz -mtime +$filemage -type f -delete
-printf "Done\n"
 dbgps
 
 # List the backup driectory, so that if the output is sent by mail, the recipient will have a good understanding on how many files there are
