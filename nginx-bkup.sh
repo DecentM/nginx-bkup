@@ -4,31 +4,24 @@
 # To be able to backup databases, you need a mysql user with these global privileges: SELECT, SHOW DATABASES, LOCK TABLES, RELOAD
 ####################################################################################################
 
-#add_option() {
+optionsc="0"
+add_option() {
+        printf "Adding option "$1" = "$2"\n" # This is debug only
+        eval "$1=$2"
 #        eval "$1="$2""
-#        let optionsc++
-#	#optionsc=$(($optionsc + 1))
-#}
-#add_option "optionsc" "1";
+        let optionsc++
+}
+add_option "optionsc" "1";
 
 if [ -f settings ]; then
-	optionsc=$(($optionsc + $(grep "^[^#]" settings | wc -l) + 1))
-	while [ $optionsc -gt 0 ]; do
-		g=$(($g-1))
-		printf "$g\n"
-	done
-	for i in {1..$linec}
-	do
-		printf "$i\n"
-		#add_option $(grep "^[^#]" settings | cut -d "=" -f1) $(grep "^[^#]" settings | cut -d "=" -f2)
-	done
+    printf "Settings file exists\n"
 else
 	printf "No settings file\n"
     #CHECK FOR NET & DOWNLOAD IT
 	exit
 fi
 
-exit
+source settings
 
 ## CONFIG DELIMETER ##
 # Debug level can go from 0 to 5, and is set from the first argument
@@ -39,11 +32,15 @@ else
 fi
 
 # Save the current UNIX timestamp to be able to measure approximate run time
-add_option "bkupstart" '$(date +""%s"")'
+add_option "bkupstart" "$(date +""%s"")"
 
 # Concatenate a random string to the backup filenames, so that even if the script is ran multiple times each second,
 # the chance of overwriting files is minimal at best
-add_option "bkupid" "$bkupdate-\#$RANDOM"
+add_option "bkupid" "\#$RANDOM"
+
+# Finalize the backup name by evaluating $namestruc,
+# thus replacing the variable names with their content in $bkupfname
+eval "bkupfname=$namestruc"
 
 # Define debugging functions
 # If the debug level is more than 2, we pause at dbgps calls
@@ -74,6 +71,10 @@ dbgps
 bkupdir="$(echo $webroot | rev | cut -d "/" -f1 | rev)"
 
 # Print all set variables by the script if the debig level is 5 or more
+if is_debug; then
+    printf "Options count is $optionsc\n"
+fi
+
 if is_debug; then
         ( set -o posix ; set ) | less | tail -$optionsc
         if [ $debuglv -gt 4 ]; then

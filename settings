@@ -1,41 +1,59 @@
+echo "Running settings"
+
 ## This is the date format, which will be used in backup names
-bkupdateformat='$(date +""%Y.%m.%d-%H%M.%S"")'
-
-## The UNIX user the backups will be chown-ed to
-## Default: root
-bkupuser='root'
-
-## The UNIX group the backups will be chown-ed to
-## Default: root
-bkupgroup='root'
-
-## The UNIX file permission the backups will be chmod-ed to
-## Default: 400
-bkupmode='400'
+add_option "bkupdateformat" "$(date +""%Y.%m.%d-%H%M.%S"")"
 
 ## The directory to store the backups in
 ## Default: /usr/share/nginx/backups
-bkuproot='/usr/share/nginx/backups'
-
+add_option "bkuproot" '/usr/share/nginx/backups'
+ 
 ## The directory that will be backed up
 ## Default: /usr/share/nginx/html
-webroot='/usr/share/nginx/html'
+add_option "webroot" '/usr/share/nginx/html'
+
+## How the file name should be structured
+## Enter sections as separate arguements
+## Legend
+##      $bkupdateformat - Backup date (see above)
+##      $ftitle         - The database name of the webroot directory name
+##      $bkupid         - A random number, in case a backup gets executed multiple times a second
+## Default: $bkupdateformat_$ftitle-backup_$bkupid
+add_option "namestruc" '$bkupdateformat\_$ftitle-backup\_$bkupid'
+
+#echo $bkupdateformat
+#echo $ftitle
+#echo $bkupid
+#eval "namestruc=$namestruc"
+#echo $namestruc
+#exit
+
+## The UNIX user the backups will be chown-ed to
+## Default: root
+add_option "bkupuser" 'root'
+
+## The UNIX group the backups will be chown-ed to
+## Default: root
+add_option "bkupgroup" 'root'
+
+## The UNIX file permission the backups will be chmod-ed to
+## Default: 400
+add_option "bkupmode" '400'
 
 ## How old should the latest backup be before it's deleted (days)
 ## Default: 7
-filemage='7'
+add_option "filemage" '7'
 
 ## Gzip compression level. 1-9
 ## For example: 1 is fast, but produces bigger files, and 9 is slow, but produces smaller files
 ## Default: 9
-gziplv='9'
+add_option "gziplv" '9'
 
 ## The database user that will take the backup, and has the privileges listed on the top
-dbus='database_username'
+add_option "dbus" 'database_username'
 
 ## The password for the database user
-dbpw='database_password'
+add_option "dbpw" 'database_password'
 
 ## List of databases that won't be backed up, delimited by an escaped pipe | character
 ## Default: Database\|information_schema\|performance_schema
-ignoredbs="Database\|information_schema\|performance_schema"
+add_option "ignoredbs" "Database\|information_schema\|performance_schema"
