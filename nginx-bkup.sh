@@ -128,7 +128,12 @@ dbgps
 
 # Use gzip to compress the created tarball using the strength set in the config
 printf "\nCompressing $bkupfname.tar with level $gziplv..."
+add_option "bfsize" "$(stat --printf="%s" $bkuproot/$bkupfname.tar)"
 gzip -$gziplv $bkupfname.tar
+printf "Gzipping saved $(($(stat -c%s)/$bfsize))\%"
+
+exit ###########################
+
 debuglog "Gzip complete"
 printf "\n"
 debuglog "$webroot done"
