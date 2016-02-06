@@ -128,9 +128,9 @@ dbgps
 
 # Use gzip to compress the created tarball using the strength set in the config
 printf "\nCompressing $bkupfname.tar with level $gziplv..."
-add_option "bfsize" "$(stat --printf="%s" $bkuproot/$bkupfname.tar)"
+#add_option "bfsize" "$(stat --printf="%s" $bkuproot/$bkupfname.tar)"
 gzip -$gziplv $bkupfname.tar
-printf "Gzipping saved $(($(stat -c%s)/$bfsize))\%"
+#printf "Gzipping saved $(($(stat -c%s)/$bfsize))\%"
 
 exit ###########################
 
@@ -151,11 +151,11 @@ for I in $(mysql -u$dbus -p$dbpw -e 'show databases' -s --skip-column-names | gr
         dbgps
 
         add_option "ftitle" "${I}"
-        eval "bkupfname=$namestruc"
+        eval bkupfname='$namestruc'
 
         # Dump the current database...
         printf "Dumping ${I}...\n"
-        mysqldump -u$dbus -p$dbpw $I > "$bkupfname.sql";
+        mysqldump -u$dbus -p$dbpw "$I" > "$bkupfname".sql;
 
         # ...and use gzip with the appropriate compression level
         printf "Compressing it with $gziplv...\n"
