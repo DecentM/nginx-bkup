@@ -13,16 +13,6 @@ add_option "bkuproot" '/home/decentm/testing/bkups'
 ## Default: '/usr/share/nginx/html'
 add_option "webroot" '/home/decentm/testing/html'
 
-## How the file name should be structured
-## Enter sections as separate arguements
-## Make sure that special characters are escaped
-## Legend
-##      $bkupdateformat - Backup date (see above)
-##      $ftitle         - The database name of the webroot directory name
-##      $bkupid         - A random number, in case a backup gets executed multiple times a second
-## Default: '$bkupdateformat\_$ftitle-backup\_$bkupid'
-add_option "namestruc" '$bkupdateformat\_$ftitle-backup\_$bkupid'
-
 ## The UNIX user the backups will be chown-ed to
 ## Default: 'root'
 add_option "bkupuser" 'root'
