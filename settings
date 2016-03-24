@@ -52,6 +52,3 @@ add_option "dbus" 'database_username'
 ## Default: 'database_password'
 add_option "dbpw" 'database_password'
 
-## List of databases that won't be backed up, delimited by an escaped pipe | character
-## Default: "Database\|information_schema\|performance_schema"
-add_option "ignoredbs" "Database\|information_schema\|performance_schema"

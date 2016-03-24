@@ -142,7 +142,7 @@ if hash mysql 2>/dev/null; then
 printf "\nBacking up database(s)...\n"
 
 # Get all database names from the mysql server, and run the loop for every not skipped database
-for I in $(mysql -u$dbus -p$dbpw -e 'show databases' -s --skip-column-names | grep -Ev "($ignoredbs)"); do
+for I in $(mysql -u$dbus -p$dbpw -e 'show databases' -s --skip-column-names); do
         dbgps
 
         add_option "ftitle" "${I}"
